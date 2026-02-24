@@ -6,11 +6,14 @@ spring:
       client:
         enabled: true
         type: SYNC
-#        sse:
-#          connections:
-#            brave:
-#              url: http://localhost:8000
-#              sse-endpoint: /sse
+        sse:
+          connections:
+            mcp-fetch:
+              url: http://mcp-proxy-custom:8000
+              sse-endpoint: /servers/fetch/sse
+            mcp-brave-search:
+              url: http://mcp-proxy-custom:8000
+              sse-endpoint: /servers/brave-search/sse
     anthropic:
       api-key: ${ANTHROPIC_API_KEY}
       chat:

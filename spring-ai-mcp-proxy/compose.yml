@@ -1,0 +1,36 @@
+services:
+  spring-ai-chatbot:
+    stdin_open: true
+    tty: true
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    depends_on:
+      mcp-proxy-custom:
+        condition: service_healthy
+
+  mcp-proxy-custom:
+    build:
+      context: .
+      dockerfile: mcp-proxy.Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - BRAVE_API_KEY=${BRAVE_API_KEY}
+    command: >
+      --pass-environment
+      --port=8000
+      --host=0.0.0.0
+      --named-server fetch 'uvx mcp-server-fetch'
+      --named-server brave-search 'uvx mcp-brave-search'
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c \"import socket; s=socket.create_connection(('localhost', 8000), timeout=5); s.close(); exit(0)\""]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
