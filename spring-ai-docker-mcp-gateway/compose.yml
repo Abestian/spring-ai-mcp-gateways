@@ -1,0 +1,47 @@
+services:
+  # This service sets up the environment variables and writes it to a file that can be used as a secret by the MCP Gateway.
+  env-setup:
+    image: alpine:latest
+    environment:
+      - BRAVE_API_KEY=${BRAVE_API_KEY}
+    volumes:
+      - secrets-data:/tmp/secrets
+    command: sh -c 'echo "brave.api_key=$${BRAVE_API_KEY}" > /tmp/secrets/mcp_secret'
+
+  spring-ai-chatbot:
+    stdin_open: true
+    tty: true
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    depends_on:
+      docker-mcp-gateway:
+        condition: service_healthy
+
+  docker-mcp-gateway:
+    image: docker/mcp-gateway
+    depends_on:
+      - env-setup
+    ports:
+      - "8000:8000"
+    command:
+      - --transport=sse
+      - --servers=duckduckgo,brave
+      - --port=8000
+      - --secrets=/run/secrets/mcp_secret
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - secrets-data:/run/secrets
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8000/sse"]
+      interval: 5s
+      timeout: 10s
+      retries: 10
+      start_period: 15s
+
+volumes:
+  secrets-data:

@@ -6,11 +6,11 @@ spring:
       client:
         enabled: true
         type: SYNC
-#        sse:
-#          connections:
-#            brave:
-#              url: http://localhost:8000
-#              sse-endpoint: /sse
+        sse:
+          connections:
+            docker-mcp-gateway:
+              url: http://docker-mcp-gateway:8000
+              sse-endpoint: /sse
     anthropic:
       api-key: ${ANTHROPIC_API_KEY}
       chat:
