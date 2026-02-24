@@ -5,6 +5,7 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.mcp.SyncMcpToolCallbackProvider;
+import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
@@ -16,8 +17,12 @@ public class Chatbot implements CommandLineRunner {
 
     private final ChatClient chatClient;
 
-    public Chatbot(ChatClient.Builder chatClientBuilder, List<McpSyncClient> mcpSyncClients) {
-        this.chatClient = chatClientBuilder.defaultSystem("You are a useful assistant and can use various tools available from mcp servers.").defaultToolCallbacks(new SyncMcpToolCallbackProvider(mcpSyncClients)).defaultAdvisors(MessageChatMemoryAdvisor.builder(MessageWindowChatMemory.builder().build()).build()).build();
+    public Chatbot(ChatClient.Builder chatClientBuilder, ToolCallbackProvider toolCallbackProvider) {
+        this.chatClient = chatClientBuilder
+                .defaultSystem("You are a useful assistant and can use various tools available from mcp servers.")
+                .defaultToolCallbacks(toolCallbackProvider)
+                .defaultAdvisors(MessageChatMemoryAdvisor.builder(MessageWindowChatMemory.builder().build()).build())
+                .build();
     }
 
     @Override

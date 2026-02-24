@@ -1,34 +1,30 @@
 package com.sebastian.spring_ai_mcp;
 
-import io.modelcontextprotocol.client.McpSyncClient;
+import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.EventListener;
 
-import java.util.List;
+import java.util.Arrays;
 
 @Configuration
 public class McpConfig {
 
-    private final List<McpSyncClient> mcpClients;
+    private final ToolCallbackProvider toolCallbackProvider;
 
-    public McpConfig(List<McpSyncClient> mcpClients) {
-        this.mcpClients = mcpClients;
+    public McpConfig(ToolCallbackProvider toolCallbackProvider) {
+        this.toolCallbackProvider = toolCallbackProvider;
     }
 
     @EventListener(ApplicationStartedEvent.class)
     public void listConnectedServers() {
-
-        if (mcpClients.isEmpty()) {
-            System.out.println("INFO: No MCP Servers connected.");
+        var tools = toolCallbackProvider.getToolCallbacks();
+        if (tools.length == 0) {
+            System.out.println("INFO: No MCP tools available.");
         } else {
-            System.out.println("INFO: Connected MCP Servers:");
-            mcpClients.forEach(client -> {
-                var serverInfo = client.getServerInfo();
-                System.out.printf("- Server: %s | Version: %s%n",
-                        serverInfo.name(),
-                        serverInfo.version());
-            });
+            System.out.println("INFO: Available MCP tools:");
+            Arrays.stream(tools).forEach(tool ->
+                    System.out.printf("  - %s%n", tool.getToolDefinition().name()));
         }
     }
 }

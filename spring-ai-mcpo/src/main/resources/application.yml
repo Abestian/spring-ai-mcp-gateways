@@ -1,16 +1,19 @@
 spring:
-  application:
-    name: spring-ai-mcp
   ai:
     mcp:
       client:
         enabled: true
         type: SYNC
-#        sse:
-#          connections:
-#            brave:
-#              url: http://localhost:8000
-#              sse-endpoint: /sse
+        http:
+          connections:
+            fetch:
+              url: http://mcpo:8000/fetch/mcp
+              headers:
+                Authorization: "Bearer top-secret"
+            brave-search:
+              url: http://mcpo:8000/brave-search/mcp
+              headers:
+                Authorization: "Bearer top-secret"
     anthropic:
       api-key: ${ANTHROPIC_API_KEY}
       chat:

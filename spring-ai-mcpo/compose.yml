@@ -1,0 +1,30 @@
+services:
+  spring-ai-chatbot:
+    stdin_open: true
+    tty: true
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    depends_on:
+      mcpo:
+        condition: service_healthy
+
+  mcpo:
+    image: ghcr.io/open-webui/mcpo:main
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./mcp-config.json:/app/config.json
+    command: ["--port", "8000", "--api-key", "top-secret", "--config", "/app/config.json"]
+    environment:
+      - BRAVE_API_KEY=${BRAVE_API_KEY}
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "-H", "Authorization: Bearer top-secret", "http://localhost:8000/fetch/openapi.json" ]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
