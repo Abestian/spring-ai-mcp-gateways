@@ -1,0 +1,50 @@
+services:
+  spring-ai-chatbot:
+    stdin_open: true
+    tty: true
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    depends_on:
+      mcp-github:
+        condition: service_healthy
+      mcp-brave-search:
+        condition: service_healthy
+
+  mcp-brave-search:
+    image: supercorp/supergateway:latest
+    ports:
+      - "8000:8000"
+    environment:
+      - BRAVE_API_KEY=${BRAVE_API_KEY}
+    command: >
+      --stdio "npx -y @brave/brave-search-mcp-server"
+      --port 8000
+    healthcheck:
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8000/sse" ]
+      interval: 5s
+      timeout: 10s
+      retries: 10
+      start_period: 15s
+
+  mcp-github:
+    build:
+      context: .
+      dockerfile: mcp-github-source.Dockerfile
+    ports:
+      - "8001:8001"
+    environment:
+      - GITHUB_PERSONAL_ACCESS_TOKEN=${GITHUB_PERSONAL_ACCESS_TOKEN}
+    command: >
+      --stdio "github-mcp-server stdio"
+      --port 8001
+    healthcheck:
+      test: [ "CMD", "sh", "-c", "wget --quiet --tries=1 --spider http://localhost:8001/ 2>/dev/null || nc -z localhost 8001" ]
+      interval: 5s
+      timeout: 10s
+      retries: 10
+      start_period: 15s

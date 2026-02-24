@@ -6,11 +6,14 @@ spring:
       client:
         enabled: true
         type: SYNC
-#        sse:
-#          connections:
-#            brave:
-#              url: http://localhost:8000
-#              sse-endpoint: /sse
+        sse:
+          connections:
+            mcp-brave-search:
+              url: http://mcp-brave-search:8000
+              sse-endpoint: /sse
+            mcp-github:
+              url: http://mcp-github:8001
+              sse-endpoint: /sse
     anthropic:
       api-key: ${ANTHROPIC_API_KEY}
       chat:
